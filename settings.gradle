@@ -1,3 +1,4 @@
 rootProject.name = 'refinement-units'
 include 'refinement-typeck'
+include 'refinement-ide'
 

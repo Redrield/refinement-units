@@ -28,9 +28,10 @@ fun refineNumericType(ty: KotlinType, cx: CompilerContext): KotlinType {
     }
 
     val args = ty.arguments.map { it.substitute { refineNumericType(it, cx) } }
-        .map { it.type.arguments[0].type.getJetTypeFqName(false) }
-        .map { numericTypeToNumber(it) }
-    cx.messageCollector!!.report(CompilerMessageSeverity.WARNING, "refined arguments into $args")
+        .map { it.type.getJetTypeFqName(false) to it.type.arguments[0].type.getJetTypeFqName(false) }
+        .map { (wrapper, number) ->
+            numericTypeToNumber(wrapper, number)
+        }
 
     val pureEquivalent = when {
         fqName.contains("Add") -> args.sum()
@@ -40,20 +41,29 @@ fun refineNumericType(ty: KotlinType, cx: CompilerContext): KotlinType {
         else -> throw RuntimeException("Trying to refine invalid type $fqName")
     }
 
-    cx.messageCollector!!.report(CompilerMessageSeverity.WARNING, "Should refine into Pure<N$pureEquivalent>")
 
-    val pureClass = cx.module.findClassAcrossModuleDependencies(ClassId(FqName("frc.team4069.saturn.units"), FqName("Pure"), false))!!
     val numericClass =
         cx.module.findClassAcrossModuleDependencies(ClassId(FqName("frc.team4069.saturn.units"), FqName("N$pureEquivalent"), false))!!
-    return KotlinTypeFactory.simpleNotNullType(
-        Annotations.EMPTY,
-        pureClass,
-        listOf(TypeProjectionImpl(KotlinTypeFactory.simpleNotNullType(Annotations.EMPTY, numericClass, listOf())))
-    )
+    return if(pureEquivalent >= 0) {
+        val pureClass = cx.module.findClassAcrossModuleDependencies(ClassId(FqName("frc.team4069.saturn.units"), FqName("Pure"), false))!!
+        KotlinTypeFactory.simpleNotNullType(
+            Annotations.EMPTY,
+            pureClass,
+            listOf(TypeProjectionImpl(KotlinTypeFactory.simpleNotNullType(Annotations.EMPTY, numericClass, listOf())))
+        )
+    } else {
+        val negClass = cx.module.findClassAcrossModuleDependencies(ClassId(FqName("frc.team4069.saturn.units"), FqName("Neg"), false))!!
+        KotlinTypeFactory.simpleNotNullType(
+            Annotations.EMPTY,
+            negClass,
+            listOf(TypeProjectionImpl(KotlinTypeFactory.simpleNotNullType(Annotations.EMPTY, numericClass, listOf())))
+        )
+    }
 }
 
-fun numericTypeToNumber(n: String): Int {
-    return when {
+fun numericTypeToNumber(wrapperName: String, n: String): Int {
+    val scale = if(wrapperName.contains("Neg")) -1 else 1
+    return scale * when {
         n.contains("N0") -> 0
         n.contains("N1") -> 1
         n.contains("N2") -> 2
