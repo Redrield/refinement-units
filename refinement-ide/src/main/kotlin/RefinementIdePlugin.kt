@@ -1,0 +1,2 @@
+
+val IdeMetaPlugin.foo

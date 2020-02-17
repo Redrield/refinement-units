@@ -1,6 +1,7 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.3.61' apply false
     id "com.github.johnrengelman.shadow" version "2.0.3" apply false
+    id "org.jetbrains.intellij" version "0.4.16" apply false
 }
 
 allprojects {
@@ -8,7 +9,7 @@ allprojects {
     apply plugin: "com.github.johnrengelman.shadow"
 }
 
-apply plugin: "application"
+//apply plugin: "application"
 
 group 'org.example'
 version '1.0-SNAPSHOT'
@@ -47,4 +48,4 @@ wrapper {
     gradleVersion = "6.0"
 }
 
-mainClassName = "MainKt"
+//mainClassName = "MainKt"
