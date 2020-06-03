@@ -1,5 +1,6 @@
 package frc.team4069.saturn.typeck
 
+import arrow.meta.CliPlugin
 import arrow.meta.Meta
 import arrow.meta.Plugin
 import arrow.meta.invoke
@@ -22,7 +23,7 @@ fun CompilerContext.suppressTypeInferenceExpectedTypeMismatch(diagnostic: Diagno
                 subType.getJetTypeFqName(false).contains("SIUnit") || superType.getJetTypeFqName(false).contains("SIUnit")
             } == true
 
-val Meta.unitTypeck: Plugin
+val Meta.unitTypeck: CliPlugin
     get() = "Refinement Units Type Checker" {
         meta(
             enableIr(),
@@ -32,8 +33,7 @@ val Meta.unitTypeck: Plugin
     }
 
 class UnitRefinement : Meta {
-    override fun intercept(ctx: CompilerContext): List<Plugin> {
+    override fun intercept(ctx: CompilerContext): List<CliPlugin> {
         return listOf(unitTypeck)
     }
-
 }

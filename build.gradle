@@ -9,7 +9,7 @@ allprojects {
     apply plugin: "com.github.johnrengelman.shadow"
 }
 
-//apply plugin: "application"
+apply plugin: "application"
 
 group 'org.example'
 version '1.0-SNAPSHOT'
@@ -48,4 +48,4 @@ wrapper {
     gradleVersion = "6.0"
 }
 
-//mainClassName = "MainKt"
+mainClassName = "MainKt"

@@ -44,7 +44,6 @@ class UnitTypeck(private val ctx: CompilerContext) : NewKotlinTypeChecker {
         }
         ctx.messageCollector!!.report(CompilerMessageSeverity.WARNING, "AFTER SUB $mappedArgs")
         if(baselineTypeck.equalTypes(p0.replaceArgumentsWithStarProjections(), p1.replaceArgumentsWithStarProjections())) {
-            // TODO: check p1 args against mapped args
             return mappedArgs.mapIndexed { i, arg -> baselineTypeck.equalTypes(arg.type, p1.arguments[i].type) }
                 .all { it }
         }

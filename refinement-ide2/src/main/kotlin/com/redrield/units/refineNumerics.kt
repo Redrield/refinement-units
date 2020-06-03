@@ -1,29 +1,27 @@
-package frc.team4069.saturn.typeck
+package com.redrield.units
 
-import arrow.meta.phases.CompilerContext
-import arrow.meta.quotes.ktFile
+import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies
-import org.jetbrains.kotlin.descriptors.resolveClassByFqName
-import org.jetbrains.kotlin.incremental.KotlinLookupLocation
-import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.js.descriptorUtils.getJetTypeFqName
-import org.jetbrains.kotlin.load.kotlin.toSourceElement
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.psi.KtElementImpl
-import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.KotlinTypeFactory
 import org.jetbrains.kotlin.types.TypeProjectionImpl
 import org.jetbrains.kotlin.types.typeUtil.substitute
+import kotlin.math.absoluteValue
 
-fun refineNumericType(ty: KotlinType, cx: CompilerContext): KotlinType {
+private val log = Logger.getInstance("#refinement.refiner")
+
+fun refineNumericType(ty: KotlinType, cx: ModuleDescriptor): KotlinType {
     val fqName = ty.getJetTypeFqName(false)
 
-    cx.messageCollector!!.report(CompilerMessageSeverity.WARNING, "REFINING ${ty.getJetTypeFqName(true)}")
-    if (fqName.contains("Pure")) {
+    log.info("type fqName in refiner ${ty.getJetTypeFqName(true)}")
+
+    if (fqName.contains("Pure") || fqName.contains("Neg")) {
         return ty
     }
 
@@ -33,26 +31,28 @@ fun refineNumericType(ty: KotlinType, cx: CompilerContext): KotlinType {
             numericTypeToNumber(wrapper, number)
         }
 
+    if(args.isEmpty()) return ty
+
     val pureEquivalent = when {
         fqName.contains("Add") -> args.sum()
         fqName.contains("Sub") -> args[0] - args[1]
         fqName.contains("Mul") -> args[0] * args[1]
         fqName.contains("Div") -> args[0] / args[1]
-        else -> throw RuntimeException("Trying to refine invalid type $fqName")
+        else -> return ty
     }
 
-
+    log.info("Trying to create refined value N$pureEquivalent")
     val numericClass =
-        cx.module!!.findClassAcrossModuleDependencies(ClassId(FqName("frc.team4069.saturn.units"), FqName("N$pureEquivalent"), false))!!
+        cx.findClassAcrossModuleDependencies(ClassId(FqName("frc.team4069.saturn.units"), FqName("N${pureEquivalent.absoluteValue}"), false))!!
     return if(pureEquivalent >= 0) {
-        val pureClass = cx.module!!.findClassAcrossModuleDependencies(ClassId(FqName("frc.team4069.saturn.units"), FqName("Pure"), false))!!
+        val pureClass = cx.findClassAcrossModuleDependencies(ClassId(FqName("frc.team4069.saturn.units"), FqName("Pure"), false))!!
         KotlinTypeFactory.simpleNotNullType(
             Annotations.EMPTY,
             pureClass,
             listOf(TypeProjectionImpl(KotlinTypeFactory.simpleNotNullType(Annotations.EMPTY, numericClass, listOf())))
         )
     } else {
-        val negClass = cx.module!!.findClassAcrossModuleDependencies(ClassId(FqName("frc.team4069.saturn.units"), FqName("Neg"), false))!!
+        val negClass = cx.findClassAcrossModuleDependencies(ClassId(FqName("frc.team4069.saturn.units"), FqName("Neg"), false))!!
         KotlinTypeFactory.simpleNotNullType(
             Annotations.EMPTY,
             negClass,

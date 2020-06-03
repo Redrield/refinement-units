@@ -24,8 +24,10 @@ class SIUnit<Kg : UnitDimension, M : UnitDimension, S : UnitDimension, A : UnitD
 }
 
 
+val Number.kilogram get() = SIUnit<Pure<N1>, Pure<N0>, Pure<N0>, Pure<N0>>(toDouble())
 val Number.coulomb get() = SIUnit<Pure<N0>, Pure<N0>, Pure<N1>, Pure<N1>>(toDouble())
 val Number.amp get() = SIUnit<Pure<N0>, Pure<N0>, Pure<N0>, Pure<N1>>(toDouble())
 val Number.second get() = SIUnit<Pure<N0>, Pure<N0>, Pure<N1>, Pure<N0>>(toDouble())
 val Number.meter get() = SIUnit<Pure<N0>, Pure<N1>, Pure<N0>, Pure<N0>>(toDouble())
+val Number.volt get() = SIUnit<Pure<N1>, Pure<N2>, Neg<N3>, Neg<N1>>(toDouble())
 val <Kg: UnitDimension, M: UnitDimension, A: UnitDimension> SIUnit<Kg, M, Pure<N0>, A>.velocity get() = SIUnit<Kg, M, Neg<N1>, A>(value)
