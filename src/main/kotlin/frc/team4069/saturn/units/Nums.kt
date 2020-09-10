@@ -4,6 +4,7 @@ abstract class Num {
 }
 
 class N0(override val i: Int = 0) : Num()
+
 class N1(override val i: Int = 1) : Num()
 class N2(override val i: Int = 2) : Num()
 class N3(override val i: Int = 3) : Num()
